@@ -21,7 +21,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('transfer', [TransactionController::class, 'transfer']);
 
-Route::post('test-transaction', [TransactionController::class, 'test']);
 
 
 
