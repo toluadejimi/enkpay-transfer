@@ -123,44 +123,46 @@ class SendCron extends Command
 
             } else {
 
-                $balance = User::where('id', $trx->user_id)->first()->main_wallet;
-                PendingTransaction::where('ref_trans_id', $trx->ref_trans_id)->update(['status' => 3]);
-                Transaction::where('ref_trans_id', $trx->ref_trans_id)->update(['status' => 3]);
-                $transfer_charges = Charge::where('title', 'transfer_fee')->first()->amount;
-                $user_wallet_banlance = User::where('id', $trx->user_id)->first()->main_wallet;
+
+                $curl = curl_init();
+                    $data = array(
+
+                    "user_id" => $trx->user_id,
+                    "ref_trans_id" => $trx->ref_trans_id,
+                    "amount" => $trx->amount,
+
+                    );
+
+                    $post_data = json_encode($data);
+
+                    curl_setopt_array($curl, array(
+                        CURLOPT_URL => 'https://enkpayapp.enkwave.com/api/transfer-reverse',
+                        CURLOPT_RETURNTRANSFER => true,
+                        CURLOPT_ENCODING => '',
+                        CURLOPT_MAXREDIRS => 10,
+                        CURLOPT_TIMEOUT => 0,
+                        CURLOPT_FOLLOWLOCATION => true,
+                        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                        CURLOPT_CUSTOMREQUEST => 'POST',
+                        CURLOPT_POSTFIELDS => $post_data,
+                        CURLOPT_HTTPHEADER => array(
+                            'Content-Type: application/json',
+                        ),
+                    ));
+
+                    $var = curl_exec($curl);
+                    curl_close($curl);
+                    $var = json_decode($var);
 
 
-                //credit
-                $credit = $user_wallet_banlance + $trx->amount + $transfer_charges;
-                $update = User::where('id', $trx->user_id)
-                    ->update([
-                        'main_wallet' => $credit,
-                    ]);
+                    $usr = User::where('id', $trx->user_id)->first();
+                    $message = "Transaction reversed | Our API  sent reversal | $error ";
+                    $full_name = $usr->first_name . "  " . $usr->last_name;
+    
+    
+                    $result = " Message========> " . $message . "\n\nCustomer Name========> " . $full_name;
+                    send_notification($result);
 
-
-                    $trasnaction = new Transaction();
-                    $trasnaction->user_id = $trx->user_id;
-                    $trasnaction->ref_trans_id = $trx->ref_trans_id;
-                    $trasnaction->transaction_type = "Reversal";
-                    $trasnaction->debit = 0;
-                    $trasnaction->amount = $trx->amount;
-                    $trasnaction->serial_no = 0;
-                    $trasnaction->title = "Reversal";
-                    $trasnaction->note = "Reversal";
-                    $trasnaction->fee = 25;
-                    $trasnaction->balance = $credit;
-                    $trasnaction->main_type = "Reversal";
-                    $trasnaction->status = 3;
-                    $trasnaction->save();
-
-
-                $usr = User::where('id', $trx->user_id)->first();
-                $message = "Transaction reversed | $error ";
-                $full_name = $usr->first_name . "  " . $usr->last_name;
-
-
-                $result = " Message========> " . $message . "\n\nCustomer Name========> " . $full_name;
-                send_notification($result);
             }
 
 
@@ -168,6 +170,8 @@ class SendCron extends Command
 
 
 
+        $result = " Message========> " . $message . "\n\nCustomer Name========> " . $full_name;
+        send_notification($result);
 
 
 
