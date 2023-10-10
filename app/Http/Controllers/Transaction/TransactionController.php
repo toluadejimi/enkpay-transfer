@@ -12,7 +12,10 @@ class TransactionController extends Controller
     public function transfer(request $request)
     {
 
-        dd('Hello');
+        dd($request->all());
+
+
+
         $trasnaction = new PendingTransaction();
         $trasnaction->user_id = $request->user_id;
         $trasnaction->ref_trans_id = $request->ref_trans_id;
