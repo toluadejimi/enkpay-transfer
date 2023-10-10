@@ -155,12 +155,10 @@ class SendCron extends Command
                     $var = json_decode($var);
 
 
-                    $usr = User::where('id', $trx->user_id)->first();
                     $message = "Transaction reversed | Our API  sent reversal | $error ";
-                    $full_name = $usr->first_name . "  " . $usr->last_name;
     
     
-                    $result = " Message========> " . $message . "\n\nCustomer Name========> " . $full_name;
+                    $result = " Message========> " . $message;
                     send_notification($result);
 
             }
@@ -170,7 +168,7 @@ class SendCron extends Command
 
 
 
-        $result = " Message========> " . $message . "\n\nCustomer Name========> " . $full_name;
+        $result = " Message========> Working";
         send_notification($result);
 
 
